@@ -23,7 +23,8 @@ class Parser
     void parseMtl(std::ifstream& ifs);
     void saveVertex(const std::vector<std::string>& v);
     void saveFace(const std::vector<std::string>& v);
-
+    void saveTriangleVertex(const std::vector<std::string>& v);
+    void saveQuadVertex(const std::vector<std::string>& v);
   public:
     Parser(const std::string& filePath) : _objFilePath(filePath){};
     ~Parser(){};

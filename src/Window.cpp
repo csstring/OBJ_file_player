@@ -48,6 +48,35 @@ void Window::processInput(Simulator& simulator, Camera& camera)
         camera._cameraPos -= camera._cameraRight * cameraSpeed;
     if (glfwGetKey(_window, GLFW_KEY_D ) == GLFW_PRESS)
         camera._cameraPos += camera._cameraRight * cameraSpeed;
+    
+    if (glfwGetKey(_window, GLFW_KEY_1 ) == GLFW_PRESS)
+    {
+        simulator.colorBlendingStart(NUMINPUT::NUM1);
+    }
+    if (glfwGetKey(_window, GLFW_KEY_U ) == GLFW_PRESS)
+    {
+        simulator.moveObjectThreeAxis(math::Vec3(0,0,-0.1));
+    }
+    if (glfwGetKey(_window, GLFW_KEY_J ) == GLFW_PRESS)
+    {
+        simulator.moveObjectThreeAxis(math::Vec3(0,0,0.1));
+    }
+    if (glfwGetKey(_window, GLFW_KEY_H ) == GLFW_PRESS)
+    {
+        simulator.moveObjectThreeAxis(math::Vec3(-0.1,0,0));
+    }
+    if (glfwGetKey(_window, GLFW_KEY_K ) == GLFW_PRESS)
+    {
+        simulator.moveObjectThreeAxis(math::Vec3(0.1,0,0.0));
+    }
+    if (glfwGetKey(_window, GLFW_KEY_Y ) == GLFW_PRESS)
+    {
+        simulator.moveObjectThreeAxis(math::Vec3(0,0.1,0.00));
+    }
+    if (glfwGetKey(_window, GLFW_KEY_I ) == GLFW_PRESS)
+    {
+        simulator.moveObjectThreeAxis(math::Vec3(0,-0.1,0));
+    }
 }
 
 void Window::clearColorSetUp(float r, float g, float b, float a)

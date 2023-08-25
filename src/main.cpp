@@ -61,17 +61,26 @@ int main()
     glfwSetScrollCallback(window._window, scroll_callback);
     glfwSetInputMode(window._window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    float radias = 0;
+    std::chrono::steady_clock::time_point curTime = getCurTimePoint();
+    std::chrono::steady_clock::time_point beforeTime = getCurTimePoint();
     while (window.isWindowClose() == false)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
+        radias += 0.01;
         shader.use();
         window.processInput(simulator, _camera);
         math::Mat4 projection = math::perspective(math::radians(_camera._zoom), (float)WINDOW_WITH / (float)WINDOW_HEIGHT, 0.1f, 500.0f);
+        math::Mat4 rotation = math::rotate(radias, math::Vec3(0,1,0));
         _camera.update();
         shader.setMat4("projection", projection);
         shader.setMat4("view", _camera._view);
+        shader.setMat4("rotation", rotation);
+        shader.setMat4("translate", simulator._worldTranslate);
+        curTime = getCurTimePoint();
+        simulator.update(getMilisecondTime(curTime, beforeTime) / float(2000));
         simulator.draw();
+        beforeTime = curTime;
         window.bufferSwap();
         glfwPollEvents();
     }

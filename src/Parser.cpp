@@ -12,6 +12,33 @@ void Parser::saveVertex(const std::vector<std::string>& v)
   _vertecies.push_back(vertex);
 }
 
+void Parser::saveTriangleVertex(const std::vector<std::string>& v)
+{
+  uint32 index1 = std::stoi(v[1]) - 1;
+  uint32 index2 = std::stoi(v[1+1]) - 1;
+  uint32 index3 = std::stoi(v[1+2]) - 1;
+  math::Vec4 t1 = _vertecies[index1];
+  math::Vec4 t2 = _vertecies[index2];
+  math::Vec4 t3 = _vertecies[index3];
+  _face.push_back(t1);
+  _face.push_back(t2);
+  _face.push_back(t3);
+}
+
+void Parser::saveQuadVertex(const std::vector<std::string>& v)
+{
+  saveTriangleVertex(v);
+  uint32 index1 = std::stoi(v[3]) - 1;
+  uint32 index2 = std::stoi(v[3+1]) - 1;
+  uint32 index3 = std::stoi(v[1]) - 1;
+  math::Vec4 t1 = _vertecies[index1];
+  math::Vec4 t2 = _vertecies[index2];
+  math::Vec4 t3 = _vertecies[index3];
+  _face.push_back(t1);
+  _face.push_back(t2);
+  _face.push_back(t3);
+}
+
 void Parser::saveFace(const std::vector<std::string>& v)
 {
   if (v.size() <= 3)
@@ -20,18 +47,10 @@ void Parser::saveFace(const std::vector<std::string>& v)
     exit(1);
   }
 
-  for (int i = 1; i <= v.size() - 3; ++i)
-  {
-    uint32 index1 = std::stoi(v[i]) - 1;
-    uint32 index2 = std::stoi(v[i+1]) - 1;
-    uint32 index3 = std::stoi(v[i+2]) - 1;
-    math::Vec4 t1 = _vertecies[index1];
-    math::Vec4 t2 = _vertecies[index2];
-    math::Vec4 t3 = _vertecies[index3];
-    _face.push_back(t1);
-    _face.push_back(t2);
-    _face.push_back(t3);
-  }
+  if (v.size() == 4)
+    saveTriangleVertex(v);
+  else if (v.size() == 5)
+    saveQuadVertex(v);
 }
 
 void Parser::parseObj(std::ifstream& ifs)
