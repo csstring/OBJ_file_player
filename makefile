@@ -1,9 +1,9 @@
 CXX = c++
 # 컴파일 플래그
 #CXXFLAGS = -Wall -Wextra -Werror
-CXXFLAGS = 
+CXXFLAGS = -std=c++17
 # 링크 플래그
-LDFLAGS =
+LDFLAGS = 
 # 소스코드 파일 경로
 SRC_DIR = ./src
 # 오브젝트 파일 경로
@@ -17,11 +17,11 @@ LIB_DIR = ./lib-universal
 GLFW_LIB_DIR = $(LIB_DIR)
 
 # 바이너리 파일
-TARGET = ./scope
-# 소스 파일 리스트
-SOURCES = $(wildcard $(SRC_DIR)/*.cpp)
+TARGET = ./humanGL
+# 소스 파일 리스트. Searching in src, src/Body, src/IK, and src/Animation
+SOURCES = $(wildcard $(SRC_DIR)/*.cpp $(SRC_DIR)/Body/*.cpp $(SRC_DIR)/Math/*.cpp $(SRC_DIR)/IK/*.cpp $(SRC_DIR)/AnimationBlend/*.cpp)
 # 오브젝트 파일 리스트
-OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))
+OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(patsubst $(SRC_DIR)/Math/%.cpp,$(OBJ_DIR)/%.o,$(patsubst $(SRC_DIR)/Body/%.cpp,$(OBJ_DIR)/%.o,$(patsubst $(SRC_DIR)/IK/%.cpp,$(OBJ_DIR)/%.o,$(patsubst $(SRC_DIR)/AnimationBlend/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES))))))
 
 all: $(TARGET)
 
@@ -29,7 +29,19 @@ $(TARGET): $(OBJECTS)
 	$(CXX) $(LDFLAGS) -o $@ $^ -L$(GLFW_LIB_DIR) -lglfw3 -lGLEW -framework Cocoa -framework OpenGL -framework IOKit
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -I$(INC_DIR)/physx -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/Body/%.cpp
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -I$(INC_DIR)/physx -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/IK/%.cpp
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -I$(INC_DIR)/physx -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/AnimationBlend/%.cpp
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -I$(INC_DIR)/physx -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/Math/%.cpp
+	$(CXX) $(CXXFLAGS) -I$(INC_DIR) -I$(INC_DIR)/physx -c $< -o $@
 
 clean:
 	rm -f $(OBJ_DIR)/*.o
