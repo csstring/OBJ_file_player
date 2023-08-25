@@ -8,7 +8,6 @@ class Shader : Noncopyable
         explicit    Shader(const char* vertexRelativePath,const char* fragmentRelativePath);
         void        initialize(void);
         void        use(void);
-        void        setMat4(const std::string &name, glm::mat4 mat4) const;
         void        setMat4(const std::string &name, math::Mat4 mat4) const;
         void        setUint(const std::string &name, unsigned int index) const;
 
