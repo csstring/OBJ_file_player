@@ -1,5 +1,12 @@
 # Blender MTL File: '42.blend'
 # Material Count: 1
+# Ka ambient color
+# Kd diffuse color
+# Ks specular color
+# Ns specular exponent 
+# d transparent
+# Ni optical density
+# illum 2 Highlight on
 
 newmtl Material
 Ns 96.078431

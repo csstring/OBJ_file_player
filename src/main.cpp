@@ -75,8 +75,8 @@ int main()
         _camera.update();
         shader.setMat4("projection", projection);
         shader.setMat4("view", _camera._view);
-        shader.setMat4("rotation", rotation);
-        shader.setMat4("translate", simulator._worldTranslate);
+        shader.setMat4("model", simulator._worldTranslate * rotation);
+        shader.setVec3("LightPosition_worldspace", math::Vec3(4,4,4));
         curTime = getCurTimePoint();
         simulator.update(getMilisecondTime(curTime, beforeTime) / float(2000));
         simulator.draw();

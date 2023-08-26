@@ -3,6 +3,8 @@
 #include "Parser.h"
 #include "GL/glew.h"
 #include <random>
+#include "DDSLoder.h"
+#include <algorithm>
 
 void Simulator::colorBlendingStart(NUMINPUT input)
 {
@@ -51,13 +53,13 @@ void Simulator::moveToCenter(Parser& parser)
       minZ = it.z;
   }
   math::Vec4 center((maxX - minX)/2, (maxY - minY)/2,(maxZ - minZ)/2,0);
-  for (auto& it : parser._face)
+  for (auto& it : parser._facePos)
     it -= center;
 }
 
 void Simulator::sendDataToGpuBuffer(const Parser& parser)
 {
-  _vertexSize = parser._face.size();
+  _vertexSize = parser._facePos.size();
   
   glGenVertexArrays(1, &_VAO);
   glBindVertexArray(_VAO);
@@ -66,27 +68,31 @@ void Simulator::sendDataToGpuBuffer(const Parser& parser)
   glBindBuffer(GL_ARRAY_BUFFER, _VBO);
   glEnableVertexAttribArray(0);	
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);//size 열의 개수
-  glBufferData(GL_ARRAY_BUFFER, sizeof(math::Vec4) * parser._face.size(), parser._face.data(), GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(math::Vec4) * parser._facePos.size(), parser._facePos.data(), GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   std::vector<math::Vec3> colors;
-  for (int i =0; i < _vertexSize; ++i)
-  {
-    math::Vec3 tmpColor;
-    if (i % 3 == 0)
-      tmpColor = math::Vec3(1,0,0);
-    if (i % 3 == 1)
-      tmpColor = math::Vec3(0,1,0);
-    if (i % 3 == 2)
-      tmpColor = math::Vec3(0,0,1);
-    colors.push_back(tmpColor);
-    _curColor = tmpColor;
-  }
+  colors.resize(_vertexSize, math::Vec3(1,0,1));
+  _curColor = math::Vec3(1,0,1);
   glGenBuffers(1, &_VCO);
   glBindBuffer(GL_ARRAY_BUFFER, _VCO);
   glEnableVertexAttribArray(1);	
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);//size 열의 개수
   glBufferData(GL_ARRAY_BUFFER, sizeof(math::Vec3) * colors.size(), colors.data(), GL_DYNAMIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glGenBuffers(1, &_uvID);
+  glBindBuffer(GL_ARRAY_BUFFER, _uvID);
+  glEnableVertexAttribArray(2);	
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);//size 열의 개수
+  glBufferData(GL_ARRAY_BUFFER, sizeof(math::Vec2) * parser._faceUV.size(), parser._faceUV.data(), GL_STATIC_DRAW);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  glGenBuffers(1, &_normalID);
+  glBindBuffer(GL_ARRAY_BUFFER, _normalID);
+  glEnableVertexAttribArray(3);	
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);//size 열의 개수
+  glBufferData(GL_ARRAY_BUFFER, sizeof(math::Vec3) * parser._faceNormal.size(), parser._faceNormal.data(), GL_STATIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glBindVertexArray(0);
@@ -107,17 +113,26 @@ math::Vec3 Simulator::blendingColor(float delta)
 
 void Simulator::initialize(void)
 {
-  const std::string defualtPath = "/Users/schoe/Desktop/scope/resources/42.obj";
+  const std::string defualtPath = "/Users/schoe/Desktop/scope/resources/suzanne.obj";
+  const std::string defualtTexturePath = "/Users/schoe/Desktop/scope/resources/uvmap.DDS";
   Parser parser(defualtPath);
-
+  DDSLoder textureLoder(defualtTexturePath);
+  
   _worldTranslate = math::Mat4(1.0f);
   parser.initialize();
-  moveToCenter(parser);
+  _textureID = textureLoder.loadDDS();
+  
+  if (_textureID == 0)
+  {
+    std::cerr << "texture file error\n";
+    exit(1);
+  }
   sendDataToGpuBuffer(parser);
 }
 
 void Simulator::draw(void)
 {
+  glBindTexture(GL_TEXTURE_2D, _textureID);
   glBindVertexArray(_VAO);
   glDrawArrays(GL_TRIANGLES, 0, _vertexSize);
   glBindVertexArray(0);

@@ -1,4 +1,4 @@
-CXX = c++
+CXX = c++ 
 # 컴파일 플래그
 #CXXFLAGS = -Wall -Wextra -Werror
 CXXFLAGS = -std=c++17

@@ -8,7 +8,7 @@ class Simulator : Noncopyable
         void sendDataToGpuBuffer(const Parser& parser);
         void moveToCenter(Parser& parser);
         math::Vec3 blendingColor(float delta);
-        uint32 _VAO, _VBO, _VCO;
+        uint32 _VAO, _VBO, _VCO, _textureID, _uvID, _normalID;
         uint32 _vertexSize;
         math::Vec3 _curColor;
         math::Vec3 _nextColor;
