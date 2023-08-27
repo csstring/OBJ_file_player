@@ -11,6 +11,7 @@ class Shader : Noncopyable
         void        setMat4(const std::string &name, math::Mat4 mat4) const;
         void        setUint(const std::string &name, unsigned int index) const;
         void        setVec3(const std::string &name, math::Vec3 vec3) const;
+        void        setFloat(const std::string &name, float index) const;
     public :
         uint32      _programId;//fixme goto private?
 

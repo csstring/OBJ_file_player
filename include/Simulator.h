@@ -1,20 +1,22 @@
 #pragma once
 #include "Common.h"
 #include "EnumHeader.h"
+#include "MtlStruct.h"
 class Parser;
+class Shader;
 class Simulator : Noncopyable
 {
     private:
         void sendDataToGpuBuffer(const Parser& parser);
         void moveToCenter(Parser& parser);
-        math::Vec3 blendingColor(float delta);
+        void blendingRatioUpdate(float delta);
         uint32 _VAO, _VBO, _VCO, _textureID, _uvID, _normalID;
         uint32 _vertexSize;
         math::Vec3 _curColor;
-        math::Vec3 _nextColor;
-        float      _blendingRatio = 1;
+        float      _blendingRatio = 0;
 
     private:
+        bool _blendingTriger = false;
         float _ns;
         math::Vec3 _ka;
         math::Vec3 _kd;
@@ -25,14 +27,15 @@ class Simulator : Noncopyable
 
     public:
         math::Mat4 _worldTranslate;
+        MtlStruct  _mtlStruct;
         NUMINPUT _numInput;
         Simulator(){}
         ~Simulator(){}
         
-        void initialize(void);
-        void update(float delta);
+        void initialize(const char* objFilePath);
+        void update(float delta, const Shader& shader);
         void draw(void);
-        void colorBlendingStart(NUMINPUT input);
+        void colorBlendingTriger(NUMINPUT input);
         void moveObjectThreeAxis(math::Vec3 move);
 };
 

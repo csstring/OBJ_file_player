@@ -1,5 +1,7 @@
 #include "Parser.h"
-
+#include "math/Math.h"
+#include <unistd.h>
+#include "MtlStruct.h"
 void Parser::saveVertex(const std::vector<std::string>& v)
 {
   if (v.size() != 4)
@@ -7,8 +9,16 @@ void Parser::saveVertex(const std::vector<std::string>& v)
     std::cerr << "vertex size error "<< std::endl;
     exit(1);
   }
-  math::Vec4 vertex(std::stof(v[1]), std::stof(v[2]), std::stof(v[3]), 1);
-  _vertecies.push_back(vertex);
+  try
+  {
+    math::Vec4 vertex(std::stof(v[1]), std::stof(v[2]), std::stof(v[3]), 1);
+    _vertices.push_back(vertex);
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    exit(1);
+  }
 }
 
 void Parser::saveUV(const std::vector<std::string>& v)
@@ -18,8 +28,16 @@ void Parser::saveUV(const std::vector<std::string>& v)
     std::cerr << "UV size error "<< std::endl;
     exit(1);
   }
-  math::Vec2 vertex(std::stof(v[1]), std::stof(v[2]));
-  _uv.push_back(vertex);
+  try
+  {
+    math::Vec2 vertex(std::stof(v[1]), std::stof(v[2]));
+    _uv.push_back(vertex);
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    exit(1);
+  }
 }
 
 void Parser::saveNormal(const std::vector<std::string>& v)
@@ -29,8 +47,16 @@ void Parser::saveNormal(const std::vector<std::string>& v)
     std::cerr << "normal size error "<< std::endl;
     exit(1);
   }
-  math::Vec3 vertex(std::stof(v[1]), std::stof(v[2]), std::stof(v[3]));
-  _normal.push_back(vertex);
+  try
+  {
+    math::Vec3 vertex(std::stof(v[1]), std::stof(v[2]), std::stof(v[3]));
+    _normal.push_back(vertex);
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    exit(1);
+  }
 }
 /*
 1
@@ -38,32 +64,34 @@ void Parser::saveNormal(const std::vector<std::string>& v)
 1//1
 1/1
 */
+void Parser::saveCase(void)
+{
+  if (_uv.empty() == true && _normal.empty() == true)
+    _Case = 0;
+  else if (_uv.empty() == false && _normal.empty() == false)
+    _Case = 1;
+  else if (_uv.empty() == true && _normal.empty() == false)
+    _Case = 2;
+  else if (_uv.empty() == false && _normal.empty() == true)
+    _Case = 3;
+  else
+  {
+    std::cerr << "face format error\n";
+    exit(1);
+  }
+}
+
 void Parser::saveIndex(const std::vector<std::string>& v, uint32 count)
 {
   _uvIndex.clear();
   _normalIndex.clear();
   _posIndex.clear();
 
-  uint32 Case;
-  if (_uv.empty() == true && _normal.empty() == true)
-    Case = 0;
-  else if (_uv.empty() == false && _normal.empty() == false)
-    Case = 1;
-  else if (_uv.empty() == true && _normal.empty() == false)
-    Case = 2;
-  else if (_uv.empty() == false && _normal.empty() == true)
-    Case = 3;
-  else
-  {
-    std::cerr << "face format error\n";
-    exit(1);
-  }
-
   for (int i =1; i < count; ++i)
   {
     uint32 posi, uvi, normali, matches;
 
-    switch (Case)
+    switch (_Case)
     {
     case 0:
       matches = sscanf(v[i].c_str(), "%d", &posi);
@@ -72,6 +100,8 @@ void Parser::saveIndex(const std::vector<std::string>& v, uint32 count)
         exit(1);
       }
       _posIndex.push_back(posi - 1);
+      _uvIndex.push_back(posi - 1);
+      _normalIndex.push_back(posi - 1);
       break;
     case 1:
       matches = sscanf(v[i].c_str(), "%d/%d/%d", &posi, &uvi, &normali);
@@ -90,6 +120,7 @@ void Parser::saveIndex(const std::vector<std::string>& v, uint32 count)
         exit(1);
       }
       _posIndex.push_back(posi - 1);
+      _uvIndex.push_back(posi - 1);
       _normalIndex.push_back(normali - 1);
       break;
     case 3:
@@ -100,6 +131,7 @@ void Parser::saveIndex(const std::vector<std::string>& v, uint32 count)
       }
       _posIndex.push_back(posi - 1);
       _uvIndex.push_back(uvi - 1);
+      _normalIndex.push_back(posi - 1);
       break;
     }
   }
@@ -107,11 +139,11 @@ void Parser::saveIndex(const std::vector<std::string>& v, uint32 count)
 
 void Parser::saveTriangleVertex(const std::vector<std::string>& v)
 {
-  if (_vertecies.empty() == false)
+  if (_vertices.empty() == false)
   {
-    _facePos.push_back(_vertecies[_posIndex[0]]);
-    _facePos.push_back(_vertecies[_posIndex[1]]);
-    _facePos.push_back(_vertecies[_posIndex[2]]);
+    _facePos.push_back(_vertices[_posIndex[0]]);
+    _facePos.push_back(_vertices[_posIndex[1]]);
+    _facePos.push_back(_vertices[_posIndex[2]]);
   }
   if (_uv.empty() == false)
   {
@@ -124,17 +156,21 @@ void Parser::saveTriangleVertex(const std::vector<std::string>& v)
     _faceNormal.push_back(_normal[_normalIndex[0]]);
     _faceNormal.push_back(_normal[_normalIndex[1]]);
     _faceNormal.push_back(_normal[_normalIndex[2]]);
+  } else {
+    _faceIndex.push_back(_normalIndex[0]);
+    _faceIndex.push_back(_normalIndex[1]);
+    _faceIndex.push_back(_normalIndex[2]);
   }
 }
 
 void Parser::saveQuadVertex(const std::vector<std::string>& v)
 {
   saveTriangleVertex(v);
-  if (_vertecies.empty() == false)
+  if (_vertices.empty() == false)
   {
-    _facePos.push_back(_vertecies[_posIndex[2]]);
-    _facePos.push_back(_vertecies[_posIndex[3]]);
-    _facePos.push_back(_vertecies[_posIndex[0]]);
+    _facePos.push_back(_vertices[_posIndex[2]]);
+    _facePos.push_back(_vertices[_posIndex[3]]);
+    _facePos.push_back(_vertices[_posIndex[0]]);
   }
   if (_uv.empty() == false)
   {
@@ -147,6 +183,10 @@ void Parser::saveQuadVertex(const std::vector<std::string>& v)
     _faceNormal.push_back(_normal[_normalIndex[2]]);
     _faceNormal.push_back(_normal[_normalIndex[3]]);
     _faceNormal.push_back(_normal[_normalIndex[0]]);
+  } else {
+    _faceIndex.push_back(_normalIndex[2]);
+    _faceIndex.push_back(_normalIndex[3]);
+    _faceIndex.push_back(_normalIndex[0]);
   }
 }
 
@@ -164,7 +204,111 @@ void Parser::saveFace(const std::vector<std::string>& v)
     saveQuadVertex(v);
 }
 
+void Parser::generateUV(void) 
+{
+    float minZ = std::numeric_limits<float>::max();
+    float minY = std::numeric_limits<float>::max();
+    float maxZ = std::numeric_limits<float>::min();
+    float maxY = std::numeric_limits<float>::min();
+
+    for (const auto& vertex : _vertices) {
+        minZ = std::min(minZ, vertex.z);
+        minY = std::min(minY, vertex.y);
+        maxZ = std::max(maxZ, vertex.z);
+        maxY = std::max(maxY, vertex.y);
+    }
+
+    for (const auto& vertex : _vertices) {
+        math::Vec2 uv((vertex.z - minZ) / (maxZ - minZ), (vertex.y - minY) / (maxY - minY));
+        _uv.push_back(uv);
+    }
+}
+
+void Parser::generateNormal(void) //fix me
+{
+  std::vector<math::Vec3> normals;
+
+  normals.resize(_vertices.size(), math::Vec3(0.0f));
+  for (int i =0; i < _faceIndex.size(); i += 3)
+  {
+    math::Vec3 v1 = math::Vec3(_vertices[_faceIndex[i]]);
+    math::Vec3 v2 = math::Vec3(_vertices[_faceIndex[i+1]]);
+    math::Vec3 v3 = math::Vec3(_vertices[_faceIndex[i+2]]);
+
+    math::Vec3 normal = math::normalize(math::cross(v2-v1, v3-v1));
+    normals[_faceIndex[i]] += normal;
+    normals[_faceIndex[i+1]] += normal;
+    normals[_faceIndex[i+2]] += normal;
+  }
+
+  for (auto& it : normals)
+    it = math::normalize(it);
+  
+  for (int i = 0; i < _faceIndex.size(); ++i)
+  {
+    _faceNormal.push_back(normals[_faceIndex[i]]);
+  }
+}
+
 void Parser::parseObj(std::ifstream& ifs)
+{
+  std::string buffer;
+  std::vector<std::string> v;
+  std::filesystem::path mtlPath("./resources/");
+
+  while (ifs.good())
+  {
+    std::getline(ifs, buffer);
+    v = ft_split(buffer);
+
+    if (v.empty() == true)
+      continue;
+    
+    if (v[0] == "#")
+      continue;
+    else if (v[0] == "mtllib")
+    {
+      mtlPath.append(v[1]);
+      if (std::filesystem::exists(mtlPath) == false)
+      {
+        std::cerr << "can't find mtl file " << std::endl;
+        std::cerr << "render defualt mtl env!\n";
+      }
+      else
+        _mtlFilePath.assign(std::filesystem::canonical(mtlPath));
+    }
+    else if (v[0] == "v")
+      saveVertex(v);
+    else if (v[0] == "vt")
+      saveUV(v);
+    else if (v[0] == "vn")
+      saveNormal(v);
+    else if (v[0] == "f")
+    {
+      if (_posIndex.empty() == true)
+        saveCase();
+      if (_uv.empty() == true)
+        generateUV();
+      saveFace(v);
+    }
+  }
+  if (_normal.empty() == true)
+    generateNormal();
+
+  ifs.close();
+  if (_mtlFilePath.empty() == true)
+  {
+    mtlPath.append("teapot2.mtl");
+    if (std::filesystem::exists(mtlPath) == false)
+    {
+      std::cerr << "defualt mtl file can't find, render fail" << std::endl;
+      exit(1);
+    }
+    _mtlFilePath.assign(std::filesystem::canonical(mtlPath));
+  }
+}
+
+void Parser::parseMtl(std::ifstream& ifs, MtlStruct& mtlStruct)
 {
   std::string buffer;
   std::vector<std::string> v;
@@ -175,59 +319,58 @@ void Parser::parseObj(std::ifstream& ifs)
     v = ft_split(buffer);
 
     if (v.empty() == true)
-      break;
-    
-    if (v[0] == "#")
       continue;
-    else if (v[0] == "mtllib")
+
+    try
     {
-      std::cout <<"mtl check" << std::endl;
-      std::cout << v[1] << std::endl;
-      _mtlFilePath = v[1];
+      if (v[0] == "#")
+        continue;
+      else if (v[0] == "Ns")
+        mtlStruct._Ns = std::stof(v[1]);
+      else if (v[0] == "Ka")
+        mtlStruct._Ka = math::Vec3(std::stof(v[1]),std::stof(v[2]),std::stof(v[3]));
+      else if (v[0] == "Kd")
+        mtlStruct._Kd = math::Vec3(std::stof(v[1]),std::stof(v[2]),std::stof(v[3]));
+      else if (v[0] == "Ks")
+        mtlStruct._Ks = math::Vec3(std::stof(v[1]),std::stof(v[2]),std::stof(v[3]));
+      else if (v[0] == "Ni")
+        mtlStruct._Ni = std::stof(v[1]);
+      else if (v[0] == "d")
+        mtlStruct._d = std::stof(v[1]);
+      else if (v[0] == "illum")
+        mtlStruct._illum = std::stof(v[1]);
     }
-    else if (v[0] == "o")
-    {}
-    else if (v[0] == "v")
-      saveVertex(v);
-    else if (v[0] == "vt")
-      saveUV(v);
-    else if (v[0] == "vn")
-      saveNormal(v);
-    else if (v[0] == "s")
-    {}
-    else if (v[0] == "f")
-      saveFace(v);
+    catch(const std::exception& e)
+    {
+      std::cerr << e.what() << '\n';
+      exit(1);
+    }
   }
+  ifs.close();
 }
 
-void Parser::parseMtl(std::ifstream& ifs) //to do
-{
-
-}
-
-void Parser::initialize(void)
+void Parser::initialize(MtlStruct& mtlStruct)
 {
   std::ifstream ifs(_objFilePath);
 
   if (ifs.is_open() == false)
   {
-    std::cerr << "Obj file path fail" << std::endl;
+    std::cerr << "Obj file path fail : "<< _objFilePath << std::endl;
     exit(1);
   }
 
   parseObj(ifs);
-  // if (_mtlFilePath.empty() == true)
-  // {
-  //   std::cerr << "mtl file path fail" << std::endl;
-  //   exit(1);
-  // }
+  if (_facePos.empty() || _faceNormal.empty() || _faceUV.empty())
+  {
+    std::cerr << "obj file format error\n";
+    exit(1);
+  }
 
-  // std::ifstream mtlIfs(_mtlFilePath);
-  // if (mtlIfs.is_open() == false)
-  // {
-  //   std::cerr << "mtl file path fail" << std::endl;
-  //   exit(1);
-  // }
-
-  // parseMtl(mtlIfs);
+  std::ifstream mtlIfs(_mtlFilePath);
+  if (mtlIfs.is_open() == false)
+  {
+    std::cerr << "defualt mtl file can't open, render fail" << std::endl;
+    exit(1);
+  }
+  parseMtl(mtlIfs, mtlStruct);
 }

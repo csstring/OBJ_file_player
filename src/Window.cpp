@@ -37,6 +37,9 @@ void Window::initialize(void)
 
 void Window::processInput(Simulator& simulator, Camera& camera)
 {
+    static int currentBlendingState,previousBlendingState;
+    currentBlendingState = glfwGetKey(_window, GLFW_KEY_1);
+
     if(glfwGetKey(_window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(_window, true);
 
@@ -49,10 +52,14 @@ void Window::processInput(Simulator& simulator, Camera& camera)
     if (glfwGetKey(_window, GLFW_KEY_D ) == GLFW_PRESS)
         camera._cameraPos += camera._cameraRight * cameraSpeed;
     
-    if (glfwGetKey(_window, GLFW_KEY_1 ) == GLFW_PRESS)
+    if (currentBlendingState == GLFW_PRESS && previousBlendingState == GLFW_RELEASE)
     {
-        simulator.colorBlendingStart(NUMINPUT::NUM1);
+        previousBlendingState = currentBlendingState;
+    } else if (currentBlendingState == GLFW_RELEASE && previousBlendingState == GLFW_PRESS) {
+        previousBlendingState = currentBlendingState;
+        simulator.colorBlendingTriger(NUMINPUT::NUM1);
     }
+
     if (glfwGetKey(_window, GLFW_KEY_U ) == GLFW_PRESS)
     {
         simulator.moveObjectThreeAxis(math::Vec3(0,0,-0.1));

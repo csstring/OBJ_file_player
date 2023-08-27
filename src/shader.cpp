@@ -10,12 +10,11 @@
 
 Shader::Shader(const char* vertexRelativePath,const char* fragmentRelativePath)
 {
-	_vertexFullPath.assign(getcwd(NULL,0));
-	_vertexFullPath.append(vertexRelativePath);
-	_fragmentFullPath.assign(getcwd(NULL,0));
-	_fragmentFullPath.append(fragmentRelativePath);
-	std::cout << _vertexFullPath << std::endl;
-	std::cout << _fragmentFullPath << std::endl;
+	std::filesystem::path vertexPath(vertexRelativePath);
+  std::filesystem::path fragmentPath(fragmentRelativePath);
+
+	_vertexFullPath.assign(std::filesystem::canonical(vertexPath));
+	_fragmentFullPath.assign(std::filesystem::canonical(fragmentPath));
 }
 
 void Shader::initialize() 
@@ -129,4 +128,9 @@ void Shader::setVec3(const std::string &name, math::Vec3 vec3) const
 void Shader::setUint(const std::string &name, unsigned int index) const
 {
     glUniform1ui(glGetUniformLocation(_programId, name.c_str()), index);
+}
+
+void Shader::setFloat(const std::string &name, float index) const
+{
+    glUniform1f(glGetUniformLocation(_programId, name.c_str()), index);
 }

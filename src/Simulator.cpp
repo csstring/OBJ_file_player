@@ -5,21 +5,26 @@
 #include <random>
 #include "DDSLoder.h"
 #include <algorithm>
+#include "shader.h"
+#include <unistd.h>
 
-void Simulator::colorBlendingStart(NUMINPUT input)
+void Simulator::colorBlendingTriger(NUMINPUT input)
 {
-  if (_blendingRatio != 1)
-    return;
-
-  _numInput = NUMINPUT::DEFAULT;
-  _blendingRatio = 0;
-  std::random_device rd;
-  std::mt19937 gen(rd());
-  std::uniform_real_distribution<float> dis(0.0, 1.0);
-  float random1 = dis(gen);
-  float random2 = dis(gen);
-  float random3 = dis(gen);
-  _nextColor = math::Vec3(random1, random2,random3);
+  if (_blendingTriger == false && _blendingRatio == 0.0f)
+  {
+    _blendingTriger = true;
+  } 
+  else if (_blendingTriger == true && _blendingRatio == 1.0f)
+  {
+    _blendingTriger = false;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<float> dis(0.0, 1.0);
+    float random1 = dis(gen);
+    float random2 = dis(gen);
+    float random3 = dis(gen);
+    _curColor = math::Vec3(random1, random2, random3);
+  }
 }
 
 void Simulator::moveObjectThreeAxis(math::Vec3 move)
@@ -30,14 +35,14 @@ void Simulator::moveObjectThreeAxis(math::Vec3 move)
 void Simulator::moveToCenter(Parser& parser)
 {
   float maxX,maxY,maxZ,minX,minY,minZ;
-  maxX = parser._vertecies[0].x;
-  minX = parser._vertecies[0].x;
-  maxY = parser._vertecies[0].y;
-  minY = parser._vertecies[0].y;
-  maxZ = parser._vertecies[0].z;
-  minZ = parser._vertecies[0].z;
+  maxX = parser._vertices[0].x;
+  minX = parser._vertices[0].x;
+  maxY = parser._vertices[0].y;
+  minY = parser._vertices[0].y;
+  maxZ = parser._vertices[0].z;
+  minZ = parser._vertices[0].z;
 
-  for (const auto& it : parser._vertecies)
+  for (const auto& it : parser._vertices)
   {
     if (it.x > maxX)
       maxX = it.x;
@@ -99,27 +104,40 @@ void Simulator::sendDataToGpuBuffer(const Parser& parser)
 
 }
 
-math::Vec3 Simulator::blendingColor(float delta)
+void Simulator::blendingRatioUpdate(float delta)
 {
-  _blendingRatio += delta;
-  if (_blendingRatio >= 1.0f)
-  {
-    _blendingRatio = 1;
-    _curColor = _nextColor;
-  }
+  if (_blendingTriger == true)
+    _blendingRatio += delta;
+  else
+    _blendingRatio -= delta;
 
-  return math::mix(_curColor, _nextColor, _blendingRatio);
+  if (_blendingRatio >= 1.0f)
+    _blendingRatio = 1;
+  else if (_blendingRatio <= 0.0f)
+    _blendingRatio = 0;
 }
 
-void Simulator::initialize(void)
+void Simulator::initialize(const char* objFilePath)
 {
-  const std::string defualtPath = "/Users/schoe/Desktop/scope/resources/suzanne.obj";
-  const std::string defualtTexturePath = "/Users/schoe/Desktop/scope/resources/uvmap.DDS";
-  Parser parser(defualtPath);
-  DDSLoder textureLoder(defualtTexturePath);
+  std::filesystem::path objPath(objFilePath);
+  std::filesystem::path TexturePath("./resources/uvmap.DDS");
+
+  if (std::filesystem::exists(objPath) == false)
+  {
+    std::cerr << "can't find obj file " << std::endl;
+    exit(1);
+  }
+  if (std::filesystem::exists(TexturePath) == false)
+  {
+    std::cerr << "can't find dds file " << std::endl;
+    exit(1);
+  }
+
+  Parser parser(std::filesystem::canonical(objPath));
+  DDSLoder textureLoder(std::filesystem::canonical(TexturePath));
   
   _worldTranslate = math::Mat4(1.0f);
-  parser.initialize();
+  parser.initialize(_mtlStruct);
   _textureID = textureLoder.loadDDS();
   
   if (_textureID == 0)
@@ -138,20 +156,21 @@ void Simulator::draw(void)
   glBindVertexArray(0);
 }
 
-void Simulator::update(float delta)
+void Simulator::update(float delta, const Shader& shader)
 {
-  math::Vec3 color;
   std::vector<math::Vec3> colors;
 
-  if (_blendingRatio == 1)
-    color = _curColor;
-  else 
-    color = blendingColor(delta);
-
-  colors.resize(_vertexSize, color);
+  blendingRatioUpdate(delta);
+  colors.resize(_vertexSize, _curColor);
   glBindVertexArray(_VAO);
   glBindBuffer(GL_ARRAY_BUFFER, _VCO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(math::Vec3) * colors.size(), colors.data(), GL_DYNAMIC_DRAW);;
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
+
+  shader.setFloat("blendingRatio", _blendingRatio);
+  shader.setVec3("Ka", _mtlStruct._Ka);
+  shader.setVec3("Kd", _mtlStruct._Kd);
+  shader.setVec3("Ks", _mtlStruct._Ks);
+  shader.setFloat("Ns", _mtlStruct._Ns);
 }

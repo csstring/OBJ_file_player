@@ -12,6 +12,8 @@
 #include "math/Vec3.h"
 #include "math/Vec4.h"
 #include "math/Vec2.h"
+#include <filesystem>
+#define GL_SILENCE_DEPRECATION
 typedef signed char         int8;
 typedef signed short        int16;
 typedef signed int          int32;

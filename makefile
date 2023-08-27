@@ -18,7 +18,7 @@ GLFW_LIB_DIR = $(LIB_DIR)
 
 # 바이너리 파일
 TARGET = ./scop
-# 소스 파일 리스트. Searching in src, src/Body, src/IK, and src/Animation
+# 소스 파일 리스트. Searching in src, src/math
 SOURCES = $(wildcard $(SRC_DIR)/*.cpp $(SRC_DIR)/Math/*.cpp )
 # 오브젝트 파일 리스트
 OBJECTS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(patsubst $(SRC_DIR)/Math/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES)))
@@ -39,5 +39,9 @@ clean:
 
 fclean: clean
 	rm -f $(TARGET)
+
+re : 
+	${MAKE} fclean 
+	${MAKE} all
 
 .PHONY: all clean fclean
