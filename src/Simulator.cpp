@@ -34,30 +34,24 @@ void Simulator::moveObjectThreeAxis(math::Vec3 move)
 
 void Simulator::moveToCenter(Parser& parser)
 {
-  float maxX,maxY,maxZ,minX,minY,minZ;
-  maxX = parser._vertices[0].x;
-  minX = parser._vertices[0].x;
-  maxY = parser._vertices[0].y;
-  minY = parser._vertices[0].y;
-  maxZ = parser._vertices[0].z;
-  minZ = parser._vertices[0].z;
+  float minZ = std::numeric_limits<float>::max();
+  float minY = std::numeric_limits<float>::max();
+  float minX = std::numeric_limits<float>::max();
+  float maxZ = std::numeric_limits<float>::min();
+  float maxY = std::numeric_limits<float>::min();
+  float maxX = std::numeric_limits<float>::min();
 
-  for (const auto& it : parser._vertices)
+  for (const auto& vertex : parser._facePos) 
   {
-    if (it.x > maxX)
-      maxX = it.x;
-    if (it.x < minX)
-      minX = it.x;
-    if (it.y > maxY)
-      maxY = it.y;
-    if (it.y < minY)
-      minY = it.y;
-    if (it.z > maxZ)
-      maxZ = it.z;
-    if (it.z < minZ)
-      minZ = it.z;
+    minZ = std::min(minZ, vertex.z);
+    minY = std::min(minY, vertex.y);
+    minX = std::min(minX, vertex.x);
+    maxZ = std::max(maxZ, vertex.z);
+    maxY = std::max(maxY, vertex.y);
+    maxX = std::min(maxX, vertex.x);
   }
-  math::Vec4 center((maxX - minX)/2, (maxY - minY)/2,(maxZ - minZ)/2,0);
+  math::Vec4 center(0,0,math::mix(minZ, maxZ, 0.5),0);
+
   for (auto& it : parser._facePos)
     it -= center;
 }
@@ -138,6 +132,7 @@ void Simulator::initialize(const char* objFilePath)
   
   _worldTranslate = math::Mat4(1.0f);
   parser.initialize(_mtlStruct);
+  moveToCenter(parser);
   _textureID = textureLoder.loadDDS();
   
   if (_textureID == 0)
