@@ -41,7 +41,6 @@ namespace math
 	Mat3 operator+(Mat3 const& m);
 	Mat3 operator-(Mat3 const& m);
 
-	// -- Binary operators --
 	Mat3 operator+(Mat3 const& m, float const& s);
 	Mat3 operator+(float const& s, Mat3 const& m);
 	Mat3 operator+(Mat3 const& m1, Mat3 const& m2);
@@ -59,7 +58,6 @@ namespace math
 	Vec3 operator/(Vec3 const& v, Mat3 const& m);
 	Mat3 operator/(Mat3 const& m1,	Mat3 const& m2);
 
-	// -- Boolean operators --
 	bool operator==(Mat3 const& m1, Mat3 const& m2);
 	bool operator!=(Mat3 const& m1, Mat3 const& m2);
 }

@@ -23,7 +23,6 @@ void main(){
 	float LightPower = 50.0f;
 	vec3  LightColor = vec3(1,1,1);
 	vec3 Materialcolor = mix(passColor, texture( myTextureSampler, UV ).rgb, blendingRatio);
-	// Material properties
 
 	float distance = length( LightPosition_worldspace - Position_worldspace );
 

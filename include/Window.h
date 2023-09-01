@@ -21,5 +21,4 @@ class Window : Noncopyable
     public :
         GLFWwindow* _window;
 
-    private :
 };

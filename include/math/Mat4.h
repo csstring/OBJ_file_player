@@ -43,7 +43,6 @@ namespace math
 	Mat4 operator+(Mat4 const& m);
 	Mat4 operator-(Mat4 const& m);
 
-	// -- Binary operators --
 	Mat4 operator+(Mat4 const& m, float const& s);
 	Mat4 operator+(float const& s, Mat4 const& m);
 	Mat4 operator+(Mat4 const& m1, Mat4 const& m2);
@@ -61,7 +60,6 @@ namespace math
 	Vec4 operator/(Vec4 const& v, Mat4 const& m);
 	Mat4 operator/(Mat4 const& m1,	Mat4 const& m2);
 
-	// -- Boolean operators --
 	bool operator==(Mat4 const& m1, Mat4 const& m2);
 	bool operator!=(Mat4 const& m1, Mat4 const& m2);
 }

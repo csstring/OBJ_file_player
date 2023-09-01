@@ -3,7 +3,7 @@
 
 uint32 DDSLoder::loadDDS(void)
 {
-  unsigned char header[124];
+  uint8 header[124];
 
   FILE *fp;
 
@@ -21,21 +21,21 @@ uint32 DDSLoder::loadDDS(void)
 
   fread(&header, 124, 1, fp);
 
-  height = *(unsigned int*)&(header[8]);
-  width = *(unsigned int*)&(header[12]);
-  linearSize = *(unsigned int*)&(header[16]);
-  mipMapCount = *(unsigned int*)&(header[24]);
-  fourCC = *(unsigned int*)&(header[80]);
+  height = *(uint32*)&(header[8]);
+  width = *(uint32*)&(header[12]);
+  linearSize = *(uint32*)&(header[16]);
+  mipMapCount = *(uint32*)&(header[24]);
+  fourCC = *(uint32*)&(header[80]);
 
-  unsigned int bufsize;
+  uint32 bufsize;
 
   bufsize = mipMapCount > 1 ? linearSize * 2 : linearSize;
-  buffer = new unsigned char[bufsize*sizeof(unsigned char)];
+  buffer = new uint8[bufsize*sizeof(uint8)];
   fread(buffer, 1, bufsize, fp);
 
   fclose(fp);
 
-  unsigned int components  = (fourCC == FOURCC_DXT1) ? 3 : 4;
+  uint32 components  = (fourCC == FOURCC_DXT1) ? 3 : 4;
   switch(fourCC)
   {
   case FOURCC_DXT1:
@@ -51,16 +51,15 @@ uint32 DDSLoder::loadDDS(void)
       return 0;
   }
 
-  GLuint textureID;
+  uint32 textureID;
   glGenTextures(1, &textureID);
   glBindTexture(GL_TEXTURE_2D, textureID);
-  unsigned int blockSize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
-  unsigned int offset = 0;
+  uint32 blockSize = (format == GL_COMPRESSED_RGBA_S3TC_DXT1_EXT) ? 8 : 16;
+  uint32 offset = 0;
 
-    /* load the mipmaps */
-  for (unsigned int level = 0; level < mipMapCount && (width || height); ++level)
+  for (uint32 level = 0; level < mipMapCount && (width || height); ++level)
   {
-      unsigned int size = ((width+3)/4)*((height+3)/4)*blockSize;
+      uint32 size = ((width+3)/4)*((height+3)/4)*blockSize;
       glCompressedTexImage2D(GL_TEXTURE_2D, level, format, width, height,
             0, size, buffer + offset);
 

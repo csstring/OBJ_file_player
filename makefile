@@ -7,7 +7,7 @@ LDFLAGS =
 # 소스코드 파일 경로
 SRC_DIR = ./src
 # 오브젝트 파일 경로
-OBJ_DIR = ./obj
+OBJ_DIR = .
 # 헤더 파일 경로
 INC_DIR = ./include
 # 라이브러리 파일 경로

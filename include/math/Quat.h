@@ -23,7 +23,6 @@ namespace math
 		Quat(const Quat& q);
 		Quat(float s, const Vec3& v);
 		Quat(float w, float x, float y, float z);
-		/// Build a Quatternion from euler angles (pitch, yaw, roll), in radians.
 		Quat(const Vec3& eulerAngles);
 		Quat(const Mat3& q);
 		Quat(const Mat4& q);
